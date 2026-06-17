@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.tmdl text eol=lf
+*.png binary
+*.svg text eol=lf

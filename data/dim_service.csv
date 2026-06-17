@@ -1,0 +1,8 @@
+service_key,service,category,list_price
+1,AC Tune-Up,Maintenance,149
+2,AC Repair,Service,320
+3,Furnace Repair,Service,340
+4,System Install,Install,6200
+5,Duct Cleaning,Maintenance,410
+6,Thermostat Install,Service,260
+7,Emergency Call,Service,480

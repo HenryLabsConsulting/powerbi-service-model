@@ -1,0 +1,261 @@
+// Cascade Field Services — Power BI semantic model (TMDL)
+//
+// This is the model definition in TMDL, the text format that Power BI Project
+// (.pbip) files use. It carries the star schema, the relationships, and the
+// full DAX measure library. The measures are documented in measures.md, and
+// their logic is validated against the data by the harness in validation/.
+//
+// Tables bind to the CSVs in data/ (or to a warehouse view of the same shape).
+
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-US
+
+/// Date dimension. Mark as the model's date table on dim_date[date].
+table dim_date
+	dataCategory: Time
+
+	column date_key
+		dataType: int64
+		summarizeBy: none
+
+	column date
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		summarizeBy: none
+		isKey
+
+	column year
+		dataType: int64
+		summarizeBy: none
+
+	column quarter
+		dataType: int64
+		summarizeBy: none
+
+	column month
+		dataType: int64
+		summarizeBy: none
+
+	column month_name
+		dataType: string
+		summarizeBy: none
+
+	column week
+		dataType: int64
+		summarizeBy: none
+
+	column weekday
+		dataType: int64
+		summarizeBy: none
+
+	column is_weekend
+		dataType: int64
+		summarizeBy: none
+
+/// Technician dimension.
+table dim_technician
+	column technician_key
+		dataType: int64
+		summarizeBy: none
+	column name
+		dataType: string
+		summarizeBy: none
+	column region
+		dataType: string
+		summarizeBy: none
+	column team
+		dataType: string
+		summarizeBy: none
+	column hire_date
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		summarizeBy: none
+
+/// Service-type dimension.
+table dim_service
+	column service_key
+		dataType: int64
+		summarizeBy: none
+	column service
+		dataType: string
+		summarizeBy: none
+	column category
+		dataType: string
+		summarizeBy: none
+	column list_price
+		dataType: decimal
+		formatString: \$#,##0
+		summarizeBy: none
+
+/// Customer dimension.
+table dim_customer
+	column customer_key
+		dataType: int64
+		summarizeBy: none
+	column name
+		dataType: string
+		summarizeBy: none
+	column segment
+		dataType: string
+		summarizeBy: none
+	column city
+		dataType: string
+		summarizeBy: none
+
+/// Jobs fact. One row per job. Carries the revenue, cost, and quality measures.
+table fact_jobs
+	column job_key
+		dataType: int64
+		summarizeBy: none
+	column date_key
+		dataType: int64
+		summarizeBy: none
+	column technician_key
+		dataType: int64
+		summarizeBy: none
+	column service_key
+		dataType: int64
+		summarizeBy: none
+	column customer_key
+		dataType: int64
+		summarizeBy: none
+	column status
+		dataType: string
+		summarizeBy: none
+	column first_time_fix
+		dataType: int64
+		summarizeBy: none
+	column duration_min
+		dataType: int64
+		summarizeBy: none
+	column revenue
+		dataType: decimal
+		summarizeBy: sum
+	column cost
+		dataType: decimal
+		summarizeBy: sum
+
+	measure 'Total Revenue' = SUM(fact_jobs[revenue])
+		formatString: \$#,##0
+
+	measure 'Total Cost' = SUM(fact_jobs[cost])
+		formatString: \$#,##0
+
+	measure 'Gross Margin' = [Total Revenue] - [Total Cost]
+		formatString: \$#,##0
+
+	measure 'Gross Margin %' = DIVIDE([Gross Margin], [Total Revenue])
+		formatString: 0.0%
+
+	measure 'Job Count' = COUNTROWS(fact_jobs)
+		formatString: #,##0
+
+	measure 'Completed Jobs' = CALCULATE([Job Count], fact_jobs[status] = "Completed")
+		formatString: #,##0
+
+	measure 'Canceled Jobs' = CALCULATE([Job Count], fact_jobs[status] = "Canceled")
+		formatString: #,##0
+
+	measure 'Cancellation Rate' = DIVIDE([Canceled Jobs], [Job Count])
+		formatString: 0.0%
+
+	measure 'Average Ticket' = DIVIDE([Total Revenue], [Completed Jobs])
+		formatString: \$#,##0
+
+	measure 'First-Time-Fix Rate' =
+			DIVIDE(
+				CALCULATE([Completed Jobs], fact_jobs[first_time_fix] = 1),
+				[Completed Jobs]
+			)
+		formatString: 0.0%
+
+	measure 'Average Job Duration' = AVERAGE(fact_jobs[duration_min])
+		formatString: #,##0" min"
+
+	measure 'Active Technicians' = DISTINCTCOUNT(fact_jobs[technician_key])
+		formatString: #,##0
+
+	measure 'Revenue per Technician' = DIVIDE([Total Revenue], [Active Technicians])
+		formatString: \$#,##0
+
+	measure 'Revenue MTD' = TOTALMTD([Total Revenue], dim_date[date])
+		formatString: \$#,##0
+
+	measure 'Revenue YTD' = TOTALYTD([Total Revenue], dim_date[date])
+		formatString: \$#,##0
+
+	measure 'Revenue Last Month' =
+			CALCULATE([Total Revenue], DATEADD(dim_date[date], -1, MONTH))
+		formatString: \$#,##0
+
+	measure 'Revenue MoM %' =
+			DIVIDE([Total Revenue] - [Revenue Last Month], [Revenue Last Month])
+		formatString: 0.0%
+
+	measure 'Revenue 3M Rolling Avg' =
+			AVERAGEX(
+				VALUES(dim_date[month]),
+				CALCULATE([Total Revenue])
+			)
+		formatString: \$#,##0
+
+/// Invoices fact. One row per invoice. Carries the cash and AR measures.
+table fact_invoices
+	column invoice_key
+		dataType: int64
+		summarizeBy: none
+	column date_key
+		dataType: int64
+		summarizeBy: none
+	column job_key
+		dataType: int64
+		summarizeBy: none
+	column amount
+		dataType: decimal
+		summarizeBy: sum
+	column paid_amount
+		dataType: decimal
+		summarizeBy: sum
+	column status
+		dataType: string
+		summarizeBy: none
+
+	measure 'Invoiced Amount' = SUM(fact_invoices[amount])
+		formatString: \$#,##0
+
+	measure 'Collected' = SUM(fact_invoices[paid_amount])
+		formatString: \$#,##0
+
+	measure 'Outstanding AR' = [Invoiced Amount] - [Collected]
+		formatString: \$#,##0
+
+	measure 'Collection Rate' = DIVIDE([Collected], [Invoiced Amount])
+		formatString: 0.0%
+
+// Relationships (star schema: facts to dimensions, single-direction filtering).
+relationship rel_jobs_date
+	fromColumn: fact_jobs.date_key
+	toColumn: dim_date.date_key
+
+relationship rel_jobs_technician
+	fromColumn: fact_jobs.technician_key
+	toColumn: dim_technician.technician_key
+
+relationship rel_jobs_service
+	fromColumn: fact_jobs.service_key
+	toColumn: dim_service.service_key
+
+relationship rel_jobs_customer
+	fromColumn: fact_jobs.customer_key
+	toColumn: dim_customer.customer_key
+
+relationship rel_invoices_date
+	fromColumn: fact_invoices.date_key
+	toColumn: dim_date.date_key
+
+relationship rel_invoices_job
+	fromColumn: fact_invoices.job_key
+	toColumn: fact_jobs.job_key

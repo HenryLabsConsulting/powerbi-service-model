@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install tooling
+        run: pip install ruff pytest duckdb
+
+      - name: Lint
+        run: ruff check data validation
+
+      - name: Verify the generator reproduces the committed data
+        run: |
+          python data/generate.py
+          git diff --exit-code data/
+
+      - name: Validate the DAX measure logic against the data
+        run: pytest -q

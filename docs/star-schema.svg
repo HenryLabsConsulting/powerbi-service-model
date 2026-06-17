@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560" font-family="Segoe UI,Helvetica,Arial,sans-serif">
+  <rect width="1100" height="560" fill="#ffffff"/>
+  <text x="40" y="40" fill="#1a2430" font-size="20" font-weight="700">Star schema</text>
+  <text x="40" y="62" fill="#6b7686" font-size="13">Four dimensions, two facts, single-direction filters from dimensions into facts.</text>
+
+  <!-- relationship lines (under boxes) -->
+  <g stroke="#c7d0db" stroke-width="2">
+    <line x1="250" y1="150" x2="430" y2="250"/>
+    <line x1="850" y1="150" x2="650" y2="250"/>
+    <line x1="250" y1="430" x2="430" y2="320"/>
+    <line x1="850" y1="430" x2="650" y2="320"/>
+    <line x1="540" y1="420" x2="540" y2="330"/>
+    <line x1="650" y1="470" x2="760" y2="470"/>
+  </g>
+
+  <!-- dim_date -->
+  <g>
+    <rect x="80" y="96" width="190" height="108" rx="10" fill="#eef4fb" stroke="#bcd3ee"/>
+    <text x="96" y="120" fill="#1a2430" font-size="14" font-weight="700">dim_date</text>
+    <text x="96" y="142" fill="#5b6675" font-size="12">date (key, marked date table)</text>
+    <text x="96" y="160" fill="#5b6675" font-size="12">year · quarter · month</text>
+    <text x="96" y="178" fill="#5b6675" font-size="12">week · weekday · is_weekend</text>
+  </g>
+  <!-- dim_technician -->
+  <g>
+    <rect x="830" y="96" width="190" height="108" rx="10" fill="#eef4fb" stroke="#bcd3ee"/>
+    <text x="846" y="120" fill="#1a2430" font-size="14" font-weight="700">dim_technician</text>
+    <text x="846" y="142" fill="#5b6675" font-size="12">technician_key</text>
+    <text x="846" y="160" fill="#5b6675" font-size="12">name · region · team</text>
+    <text x="846" y="178" fill="#5b6675" font-size="12">hire_date</text>
+  </g>
+  <!-- dim_service -->
+  <g>
+    <rect x="80" y="356" width="190" height="100" rx="10" fill="#eef4fb" stroke="#bcd3ee"/>
+    <text x="96" y="380" fill="#1a2430" font-size="14" font-weight="700">dim_service</text>
+    <text x="96" y="402" fill="#5b6675" font-size="12">service_key</text>
+    <text x="96" y="420" fill="#5b6675" font-size="12">service · category</text>
+    <text x="96" y="438" fill="#5b6675" font-size="12">list_price</text>
+  </g>
+  <!-- dim_customer -->
+  <g>
+    <rect x="830" y="356" width="190" height="100" rx="10" fill="#eef4fb" stroke="#bcd3ee"/>
+    <text x="846" y="380" fill="#1a2430" font-size="14" font-weight="700">dim_customer</text>
+    <text x="846" y="402" fill="#5b6675" font-size="12">customer_key</text>
+    <text x="846" y="420" fill="#5b6675" font-size="12">segment · city</text>
+    <text x="846" y="438" fill="#5b6675" font-size="12">name</text>
+  </g>
+
+  <!-- fact_jobs -->
+  <g>
+    <rect x="420" y="232" width="240" height="120" rx="10" fill="#fff7e8" stroke="#f0d290"/>
+    <text x="438" y="256" fill="#8a5a00" font-size="14" font-weight="700">fact_jobs</text>
+    <text x="438" y="278" fill="#6b5a30" font-size="12">status · first_time_fix · duration</text>
+    <text x="438" y="296" fill="#6b5a30" font-size="12">revenue · cost</text>
+    <text x="438" y="320" fill="#a8730c" font-size="12" font-weight="600">18 measures</text>
+    <text x="438" y="338" fill="#6b5a30" font-size="11">revenue, margin, FTF, time intel</text>
+  </g>
+  <!-- fact_invoices -->
+  <g>
+    <rect x="760" y="430" width="220" height="86" rx="10" fill="#fff7e8" stroke="#f0d290"/>
+    <text x="778" y="454" fill="#8a5a00" font-size="14" font-weight="700">fact_invoices</text>
+    <text x="778" y="476" fill="#6b5a30" font-size="12">amount · paid_amount · status</text>
+    <text x="778" y="498" fill="#a8730c" font-size="12" font-weight="600">4 measures (cash, AR)</text>
+  </g>
+</svg>

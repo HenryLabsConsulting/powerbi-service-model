@@ -18,7 +18,9 @@ EXPECTED = {
     "cancellation_rate": 0.0822,
     "average_ticket": 1267.41,
     "first_time_fix_rate": 0.7033,
+    "average_job_duration": 159.7,
     "active_technicians": 16,
+    "revenue_per_technician": 145752.57,
     "invoiced_amount": 2332041.18,
     "collected": 1726320.04,
     "outstanding_ar": 605721.14,
@@ -52,7 +54,7 @@ def test_internal_consistency(m):
 
 
 def test_ytd_matches_filtered_year(con):
-    assert revenue_ytd(con, 2026) > 0
+    assert math.isclose(revenue_ytd(con, 2026), 1962849.83, rel_tol=1e-4, abs_tol=0.05)
     assert revenue_ytd(con, 1999) == 0.0
 
 

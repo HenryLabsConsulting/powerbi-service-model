@@ -13,7 +13,9 @@ model Model
 	discourageImplicitMeasures
 	sourceQueryCulture: en-US
 
-/// Date dimension. Mark as the model's date table on dim_date[date].
+/// Date dimension. Marked as the model's date table: dataCategory Time on the
+/// table plus isKey on dim_date[date], which is what makes the time
+/// intelligence measures resolve.
 table dim_date
 	dataCategory: Time
 

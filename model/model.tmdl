@@ -195,7 +195,10 @@ table fact_jobs
 			DIVIDE([Total Revenue] - [Revenue Last Month], [Revenue Last Month])
 		formatString: 0.0%
 
-	measure 'Revenue 3M Rolling Avg' =
+	// Average revenue across the distinct calendar months in the current
+	// filter context. This is an all-period monthly average, not a trailing
+	// window, and month numbers collapse across years.
+	measure 'Avg Monthly Revenue' =
 			AVERAGEX(
 				VALUES(dim_date[month]),
 				CALCULATE([Total Revenue])

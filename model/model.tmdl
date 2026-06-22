@@ -240,7 +240,8 @@ table fact_invoices
 	measure 'Collection Rate' = DIVIDE([Collected], [Invoiced Amount])
 		formatString: 0.0%
 
-// Relationships (star schema: facts to dimensions, single-direction filtering).
+// Relationships. Facts to dimensions with single-direction filtering, plus one
+// fact-to-fact bridge (rel_invoices_job) tying each invoice to its job.
 relationship rel_jobs_date
 	fromColumn: fact_jobs.date_key
 	toColumn: dim_date.date_key

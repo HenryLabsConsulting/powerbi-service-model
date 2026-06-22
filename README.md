@@ -2,7 +2,7 @@
 
 **A field-service company gets one trustworthy set of numbers: revenue, margin, first-time-fix, cash, and technician productivity, all reconciling from a single clean model.**
 
-This is a Power BI semantic model for a fictional HVAC company, Cascade Field Services, built the way a model should be built. A clean star schema, conformed dimensions, and a documented DAX measure library where every number traces back to one definition. The whole thing is in text, so it reviews like code and the measure logic is tested in CI.
+This is a Power BI semantic model for a fictional HVAC company, Cascade Field Services, built the way a model should be built. A star schema with conformed dimensions, plus one deliberate fact-to-fact bridge linking invoices to the jobs that produced them, and a documented DAX measure library where every number traces back to one definition. The whole thing is in text, so it reviews like code and the measure logic is tested in CI.
 
 ![Report preview](docs/report-preview.svg)
 
@@ -19,6 +19,8 @@ A `.pbix` file is a binary box. You cannot diff it, review it, or test it. This 
 ![Star schema](docs/star-schema.svg)
 
 Four dimensions and two facts. Filters flow one direction, from dimensions into facts, which keeps the model predictable and fast. `dim_date` is a proper date table, so time intelligence works.
+
+It is not a textbook pure star: `fact_invoices` joins to `fact_jobs` on `job_key`, a fact-to-fact bridge that ties each invoice back to the job it bills. That is the honest shape of the data here, since an invoice exists because a job happened. The dimensions still conform across both facts through the shared keys, so the model stays consistent.
 
 | Table | Grain | Carries |
 |---|---|---|

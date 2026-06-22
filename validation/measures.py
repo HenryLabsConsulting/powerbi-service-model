@@ -31,8 +31,8 @@ def measures(con: duckdb.DuckDBPyConnection) -> dict:
     """Compute the headline measures, mirroring the DAX in model.tmdl."""
     jobs = con.execute("""
         SELECT
-            ROUND(SUM(revenue), 2)                                              AS total_revenue,
-            ROUND(SUM(cost), 2)                                                 AS total_cost,
+            ROUND(COALESCE(SUM(revenue), 0), 2)                                 AS total_revenue,
+            ROUND(COALESCE(SUM(cost), 0), 2)                                    AS total_cost,
             COUNT(*)                                                            AS job_count,
             COUNT(*) FILTER (WHERE status = 'Completed')                        AS completed_jobs,
             COUNT(*) FILTER (WHERE status = 'Canceled')                         AS canceled_jobs,
@@ -44,12 +44,14 @@ def measures(con: duckdb.DuckDBPyConnection) -> dict:
     (total_revenue, total_cost, job_count, completed, canceled, ftf, techs, avg_dur) = jobs
 
     inv = con.execute("""
-        SELECT ROUND(SUM(amount), 2), ROUND(SUM(paid_amount), 2)
+        SELECT ROUND(COALESCE(SUM(amount), 0), 2), ROUND(COALESCE(SUM(paid_amount), 0), 2)
         FROM fact_invoices
     """).fetchone()
     invoiced, collected = inv
 
     def div(a, b):
+        # Mirrors DAX DIVIDE: a zero (or missing) denominator yields 0.0, never
+        # a divide-by-zero. Every ratio measure routes through this guard.
         return round(a / b, 4) if b else 0.0
 
     gross_margin = round(total_revenue - total_cost, 2)
@@ -62,11 +64,11 @@ def measures(con: duckdb.DuckDBPyConnection) -> dict:
         "completed_jobs": completed,
         "canceled_jobs": canceled,
         "cancellation_rate": div(canceled, job_count),
-        "average_ticket": round(total_revenue / completed, 2),
+        "average_ticket": div(total_revenue, completed),
         "first_time_fix_rate": div(ftf, completed),
         "average_job_duration": avg_dur,
         "active_technicians": techs,
-        "revenue_per_technician": round(total_revenue / techs, 2),
+        "revenue_per_technician": div(total_revenue, techs),
         "invoiced_amount": invoiced,
         "collected": collected,
         "outstanding_ar": round(invoiced - collected, 2),

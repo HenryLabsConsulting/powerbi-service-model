@@ -2,6 +2,7 @@
 
 import math
 
+import duckdb
 import pytest
 from measures import connect, measures, revenue_ytd
 
@@ -56,6 +57,27 @@ def test_internal_consistency(m):
 def test_ytd_matches_filtered_year(con):
     assert math.isclose(revenue_ytd(con, 2026), 1962849.83, rel_tol=1e-4, abs_tol=0.05)
     assert revenue_ytd(con, 1999) == 0.0
+
+
+def test_ratio_measures_guard_against_zero_denominator():
+    # Mirrors the DAX DIVIDE behavior: an empty fact table has no completed jobs
+    # and no active technicians, so the ratio measures must return 0.0 rather
+    # than raise ZeroDivisionError.
+    con = duckdb.connect()
+    con.execute(
+        "CREATE TABLE fact_jobs (revenue DECIMAL, cost DECIMAL, status VARCHAR, "
+        "first_time_fix INTEGER, technician_key INTEGER, duration_min INTEGER)"
+    )
+    con.execute("CREATE TABLE fact_invoices (amount DECIMAL, paid_amount DECIMAL)")
+
+    m = measures(con)
+
+    assert m["average_ticket"] == 0.0
+    assert m["revenue_per_technician"] == 0.0
+    assert m["gross_margin_pct"] == 0.0
+    assert m["cancellation_rate"] == 0.0
+    assert m["first_time_fix_rate"] == 0.0
+    assert m["collection_rate"] == 0.0
 
 
 def test_every_fact_row_resolves_to_a_dimension(con):

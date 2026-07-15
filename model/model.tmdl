@@ -258,9 +258,21 @@ relationship rel_jobs_customer
 	fromColumn: fact_jobs.customer_key
 	toColumn: dim_customer.customer_key
 
+// dim_date -> fact_invoices has two possible paths once rel_invoices_job exists:
+// this direct relationship, and the two-hop path through fact_jobs. Leaving both
+// active ties them at equal weight, which the Tabular engine resolves as an
+// ambiguous filter path (hard error at query time, not just a modeling smell).
+// Keeping the fact-to-fact bridge as the one active path is deliberate: invoice
+// date always equals its job's date by construction (see data/generate.py, both
+// rows are written from the same loop date), so the direct path is redundant
+// data, not a distinct grain. Any future measure that needs to filter
+// fact_invoices by dim_date without going through fact_jobs should route through
+// USERELATIONSHIP('fact_invoices'[date_key], 'dim_date'[date_key]) rather than
+// flipping this back to active.
 relationship rel_invoices_date
 	fromColumn: fact_invoices.date_key
 	toColumn: dim_date.date_key
+	isActive: false
 
 relationship rel_invoices_job
 	fromColumn: fact_invoices.job_key

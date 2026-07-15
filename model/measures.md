@@ -60,3 +60,21 @@ Revenue YTD for 2026 in the sample data is $1,962,850, which the harness checks.
 | Collected | `SUM(fact_invoices[paid_amount])` | $1,726,320 |
 | Outstanding AR | `[Invoiced Amount] - [Collected]` | $605,721 |
 | Collection Rate | `DIVIDE([Collected], [Invoiced Amount])` | 74.0% |
+
+### A note on `dim_date` -> `fact_invoices`
+
+`fact_invoices` carries its own `date_key`, and `dim_date` could join to it
+directly. That relationship exists in the model (`rel_invoices_date`) but is
+set **inactive**, because `fact_invoices` also reaches `dim_date` through the
+`rel_invoices_job` bridge (`fact_invoices` -> `fact_jobs` -> `dim_date`). With
+both paths active, a filter on `dim_date` would reach `fact_invoices` two ways
+at once — the exact tie the Tabular engine rejects as an ambiguous filter
+path. Only one path may be active at a time, and the bridge through
+`fact_jobs` is the one kept live, consistent with treating the invoice-to-job
+relationship as the model's fact-to-fact backbone. The direct path is also
+redundant data, not a distinct grain: an invoice's `date_key` always equals
+its job's `date_key` by construction (`data/generate.py` writes both fact rows
+from the same loop date), so the two paths never disagree. A measure that
+needed the direct relationship instead of the bridge would use
+`USERELATIONSHIP('fact_invoices'[date_key], 'dim_date'[date_key])` inside
+`CALCULATE`; none of the measures above need that today.

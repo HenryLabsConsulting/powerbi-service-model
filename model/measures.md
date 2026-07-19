@@ -49,14 +49,8 @@ marked as the model's date table.
 | Revenue YTD | `TOTALYTD([Total Revenue], dim_date[date])` |
 | Revenue Last Month | `CALCULATE([Total Revenue], DATEADD(dim_date[date], -1, MONTH))` |
 | Revenue MoM % | `DIVIDE([Total Revenue] - [Revenue Last Month], [Revenue Last Month])` |
-| Avg Monthly Revenue | `AVERAGEX(VALUES(dim_date[month]), CALCULATE([Total Revenue]))` |
 
 Revenue YTD for 2026 in the sample data is $1,962,850, which the harness checks.
-
-Avg Monthly Revenue over the full sample dataset is $388,674, which the harness checks.
-`VALUES(dim_date[month])` iterates over month *numbers* (1–12), so January 2025 and January 2026
-collapse into a single month-1 bucket. This is intentional for a business-cycle average but means
-the measure overstates revenue per calendar month when the filter context spans multiple years.
 
 ## Cash and accounts receivable
 

@@ -26,7 +26,6 @@ EXPECTED = {
     "collected": 1726320.04,
     "outstanding_ar": 605721.14,
     "collection_rate": 0.7403,
-    "avg_monthly_revenue": 388673.53,
 }
 
 

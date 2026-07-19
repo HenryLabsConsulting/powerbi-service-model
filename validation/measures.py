@@ -49,6 +49,19 @@ def measures(con: duckdb.DuckDBPyConnection) -> dict:
     """).fetchone()
     invoiced, collected = inv
 
+    # Mirrors AVERAGEX(VALUES(dim_date[month]), CALCULATE([Total Revenue])).
+    # Groups by month number (1–12), collapsing across years, then averages.
+    avg_monthly_rev_row = con.execute("""
+        SELECT ROUND(AVG(monthly_rev), 2)
+        FROM (
+            SELECT d.month, SUM(j.revenue) AS monthly_rev
+            FROM fact_jobs j
+            JOIN dim_date d ON d.date_key = j.date_key
+            GROUP BY d.month
+        ) t
+    """).fetchone()
+    avg_monthly_revenue = avg_monthly_rev_row[0] or 0.0
+
     def div(a, b):
         # Mirrors DAX DIVIDE: a zero (or missing) denominator yields 0.0, never
         # a divide-by-zero. Every ratio measure routes through this guard.
@@ -73,6 +86,7 @@ def measures(con: duckdb.DuckDBPyConnection) -> dict:
         "collected": collected,
         "outstanding_ar": round(invoiced - collected, 2),
         "collection_rate": div(collected, invoiced),
+        "avg_monthly_revenue": avg_monthly_revenue,
     }
 
 
